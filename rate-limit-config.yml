@@ -4,8 +4,6 @@ metadata:
   name: ratelimit-config
   namespace: istio-system
 
-
-spec: {}
 data:
   config.yaml: |
     domain: istio-ratelimit
