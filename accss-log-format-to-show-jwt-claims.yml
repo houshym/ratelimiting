@@ -1,0 +1,71 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+
+  name: ingress-access-log-format
+  namespace: istio-system
+
+spec:
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            '@type': >-
+              type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            access_log:
+              - name: envoy.access_loggers.file
+                typed_config:
+                  '@type': >-
+                    type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+                  log_format:
+                    json_format:
+                      acf-x-user-email: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:email)%
+                      authority: '%REQ(:AUTHORITY)%'
+                      bytes_received: '%BYTES_RECEIVED%'
+                      bytes_sent: '%BYTES_SENT%'
+                      downstream_local_address: '%DOWNSTREAM_LOCAL_ADDRESS%'
+                      downstream_remote_address: '%DOWNSTREAM_REMOTE_ADDRESS%'
+                      duration: '%DURATION%'
+                      entitlement: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:custom_attributes:Entitlement)%
+                      issuer: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:iss)%
+                      method: '%REQ(:METHOD)%'
+                      path: '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%'
+                      privilege: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:custom_attributes:Privilege)%
+                      protocol: '%PROTOCOL%'
+                      request_id: '%REQ(X-REQUEST-ID)%'
+                      requested_server_name: '%REQUESTED_SERVER_NAME%'
+                      response_code: '%RESPONSE_CODE%'
+                      response_code_details: '%RESPONSE_CODE_DETAILS%'
+                      response_flags: '%RESPONSE_FLAGS%'
+                      role: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:custom_attributes:Role)%
+                      route_name: '%ROUTE_NAME%'
+                      start_time: '%START_TIME%'
+                      sub: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:sub)%
+                      upstream_cluster: '%UPSTREAM_CLUSTER%'
+                      upstream_host: '%UPSTREAM_HOST%'
+                      upstream_local_address: '%UPSTREAM_LOCAL_ADDRESS%'
+                      upstream_service_time: '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%'
+                      user_agent: '%REQ(USER-AGENT)%'
+                      user_id: >-
+                        %DYNAMIC_METADATA(envoy.filters.http.jwt_authn:payload:sub)%
+                      x_auth_email: '%REQ(X-AUTH-REQUEST-EMAIL)%'
+                      x_auth_user: '%REQ(X-AUTH-REQUEST-USER)%'
+                      x_forwarded_for: '%REQ(X-FORWARDED-FOR)%'
+                  path: /dev/stdout
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway

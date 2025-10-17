@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: istio-system
+  uid: 50d001a2-4480-4ed9-8415-34172ff8372f
+  resourceVersion: '100664414'
+  generation: 1
+  creationTimestamp: '2025-10-13T17:04:00Z'
+  labels:
+    kustomize.toolkit.fluxcd.io/name: rate-limit
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  selfLink: /apis/apps/v1/namespaces/istio-system/statefulsets/redis
+status:
+  observedGeneration: 1
+  replicas: 1
+  readyReplicas: 1
+  currentReplicas: 1
+  updatedReplicas: 1
+  currentRevision: redis-85c65947b5
+  updateRevision: redis-85c65947b5
+  collisionCount: 0
+  availableReplicas: 1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  volumeClaimTemplates:
+    - kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: redis-data
+        creationTimestamp: null
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: gp3
+        volumeMode: Filesystem
+      status:
+        phase: Pending
+  serviceName: redis
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  revisionHistoryLimit: 10
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain

@@ -1,0 +1,100 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+
+  name: custom-429-error-page
+  namespace: istio-system
+
+spec:
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            '@type': >-
+              type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            local_reply_config:
+              mappers:
+                - body:
+                    inline_string: |
+                      <!DOCTYPE html>
+                      <html lang="en">
+                      <head>
+                          <meta charset="UTF-8">
+                          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                          <title>Too Many Requests</title>
+                          <style>
+                              body { 
+                                  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+                                  display: flex; 
+                                  justify-content: center; 
+                                  align-items: center; 
+                                  height: 100vh; 
+                                  margin: 0; 
+                                  background-color: #f4f6f8; 
+                                  color: #444; 
+                              }
+                              .container { 
+                                  text-align: center; 
+                                  background-color: white; 
+                                  padding: 40px; 
+                                  border-radius: 8px; 
+                                  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+                                  max-width: 500px; 
+                              }
+                              h1 { 
+                                  font-size: 24px; 
+                                  color: #d9534f; 
+                                  margin-bottom: 20px; 
+                              }
+                              p { 
+                                  font-size: 16px; 
+                                  margin: 10px 0; 
+                                  color: #666; 
+                              }
+                              .icon { 
+                                  vertical-align: middle; 
+                                  margin-right: 10px; 
+                              }
+                          </style>
+                      </head>
+                      <body>
+                          <div class="container">
+                              <h1>
+                                  <svg class="icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                      <circle cx="12" cy="12" r="10"></circle>
+                                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                  </svg>
+                                  Too Many Requests
+                              </h1>
+                              <p>You have exceeded the allowed number of requests.</p>
+                              <p>Please try again in a few moments.</p>
+                          </div>
+                      </body>
+                      </html>
+                  filter:
+                    status_code_filter:
+                      comparison:
+                        op: EQ
+                        value:
+                          default_value: 429
+                          runtime_key: key_b
+                  headers_to_add:
+                    - header:
+                        key: content-type
+                        value: text/html; charset=utf-8
+                    - append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                      header:
+                        key: x-rate-limit-exceeded
+                        value: 'true'
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
