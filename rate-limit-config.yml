@@ -3,13 +3,8 @@ kind: ConfigMap
 metadata:
   name: ratelimit-config
   namespace: istio-system
-  uid: 0140963f-3a43-40fc-9734-02b2d5de5f3b
-  resourceVersion: '105173826'
-  creationTimestamp: '2025-10-13T17:04:00Z'
-  labels:
-    kustomize.toolkit.fluxcd.io/name: rate-limit
-    kustomize.toolkit.fluxcd.io/namespace: flux-system
-  selfLink: /api/v1/namespaces/istio-system/configmaps/ratelimit-config
+
+
 spec: {}
 data:
   config.yaml: |

@@ -3,14 +3,7 @@ kind: StatefulSet
 metadata:
   name: redis
   namespace: istio-system
-  uid: 50d001a2-4480-4ed9-8415-34172ff8372f
-  resourceVersion: '100664414'
-  generation: 1
-  creationTimestamp: '2025-10-13T17:04:00Z'
-  labels:
-    kustomize.toolkit.fluxcd.io/name: rate-limit
-    kustomize.toolkit.fluxcd.io/namespace: flux-system
-  selfLink: /apis/apps/v1/namespaces/istio-system/statefulsets/redis
+
 status:
   observedGeneration: 1
   replicas: 1
